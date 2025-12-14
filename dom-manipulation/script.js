@@ -92,6 +92,8 @@ function addQuote() {
   showRandomQuote();
   saveQuotes();          
 populateCategories(); 
+postQuotesToServer();
+
 
 }
 
@@ -226,20 +228,20 @@ if (savedCategory) {
 const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
 async function fetchQuotesFromServer() {
   try {
-    const response = await fetch(SERVER_URL);
+    const response = await fetch("https://jsonplaceholder.typicode.com/posts");
     const data = await response.json();
 
-    // Simulate server quotes format
     const serverQuotes = data.slice(0, 5).map(item => ({
       text: item.title,
       category: "Server"
     }));
 
-    syncWithServer(serverQuotes);
+    syncQuotes(serverQuotes); 
   } catch (error) {
-    console.error("Server sync failed", error);
+    console.error("Server fetch failed", error);
   }
 }
+
 function syncWithServer(serverQuotes) {
   let conflictsResolved = false;
 
@@ -271,6 +273,54 @@ function notifySync(message) {
     notice.id = "syncNotice";
     notice.style.background = "#eef";
     notice.style.padding = "10px";
+    notice.style.marginTop = "10px";
+    document.body.appendChild(notice);
+  }
+
+  notice.textContent = message;
+}
+function syncQuotes(serverQuotes) {
+  let updated = false;
+
+  serverQuotes.forEach(serverQuote => {
+    const exists = quotes.some(
+      localQuote => localQuote.text === serverQuote.text
+    );
+
+    if (!exists) {
+      quotes.push(serverQuote); // Server takes precedence
+      updated = true;
+    }
+  });
+
+  if (updated) {
+    saveQuotes();          // ✅ update local storage
+    populateCategories(); // keep filters in sync
+    filterQuotes();
+    notifySync("Server data synced. Conflicts resolved.");
+  }
+}
+async function postQuotesToServer() {
+  try {
+    await fetch("https://jsonplaceholder.typicode.com/posts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(quotes)
+    });
+  } catch (error) {
+    console.error("Failed to post quotes to server", error);
+  }
+}
+function notifySync(message) {
+  let notice = document.getElementById("syncNotice");
+
+  if (!notice) {
+    notice = document.createElement("div");
+    notice.id = "syncNotice";
+    notice.style.border = "1px solid #ccc";
+    notice.style.padding = "8px";
     notice.style.marginTop = "10px";
     document.body.appendChild(notice);
   }
