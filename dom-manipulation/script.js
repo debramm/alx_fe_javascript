@@ -224,7 +224,7 @@ if (savedCategory) {
   filterQuotes();
 }
 const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
-async function fetchServerQuotes() {
+async function fetchQuotesFromServer() {
   try {
     const response = await fetch(SERVER_URL);
     const data = await response.json();
@@ -262,7 +262,7 @@ function syncWithServer(serverQuotes) {
   }
 }
 // Periodic sync every 30 seconds
-setInterval(fetchServerQuotes, 30000);
+setInterval(fetchQuotesFromServer, 30000);
 function notifySync(message) {
   let notice = document.getElementById("syncNotice");
 
