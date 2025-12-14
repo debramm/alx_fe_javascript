@@ -223,3 +223,57 @@ if (savedCategory) {
   document.getElementById("categoryFilter").value = savedCategory;
   filterQuotes();
 }
+const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
+async function fetchServerQuotes() {
+  try {
+    const response = await fetch(SERVER_URL);
+    const data = await response.json();
+
+    // Simulate server quotes format
+    const serverQuotes = data.slice(0, 5).map(item => ({
+      text: item.title,
+      category: "Server"
+    }));
+
+    syncWithServer(serverQuotes);
+  } catch (error) {
+    console.error("Server sync failed", error);
+  }
+}
+function syncWithServer(serverQuotes) {
+  let conflictsResolved = false;
+
+  serverQuotes.forEach(serverQuote => {
+    const exists = quotes.some(
+      localQuote => localQuote.text === serverQuote.text
+    );
+
+    if (!exists) {
+      quotes.push(serverQuote);
+      conflictsResolved = true;
+    }
+  });
+
+  if (conflictsResolved) {
+    saveQuotes();
+    populateCategories();
+    filterQuotes();
+    notifySync("New quotes synced from server. Conflicts resolved.");
+  }
+}
+// Periodic sync every 30 seconds
+setInterval(fetchServerQuotes, 30000);
+function notifySync(message) {
+  let notice = document.getElementById("syncNotice");
+
+  if (!notice) {
+    notice = document.createElement("div");
+    notice.id = "syncNotice";
+    notice.style.background = "#eef";
+    notice.style.padding = "10px";
+    notice.style.marginTop = "10px";
+    document.body.appendChild(notice);
+  }
+
+  notice.textContent = message;
+}
