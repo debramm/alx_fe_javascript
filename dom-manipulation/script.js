@@ -316,14 +316,11 @@ async function postQuotesToServer() {
 function notifySync(message) {
   let notice = document.getElementById("syncNotice");
 
-  if (!notice) {
-    notice = document.createElement("div");
-    notice.id = "syncNotice";
-    notice.style.border = "1px solid #ccc";
-    notice.style.padding = "8px";
-    notice.style.marginTop = "10px";
-    document.body.appendChild(notice);
-  }
+  if (updated) {
+    saveQuotes();          // update local storage
+    populateCategories();  // keep filters in sync
+    filterQuotes();
+    notifySync("Quotes synced with server!");
+}
 
-  notice.textContent = message;
 }
