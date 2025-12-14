@@ -90,6 +90,9 @@ function addQuote() {
   document.getElementById("newQuoteCategory").value = "";
 
   showRandomQuote();
+  saveQuotes();          
+populateCategories(); 
+
 }
 
 /* =======================
@@ -173,4 +176,50 @@ if (lastQuote) {
   quoteDisplay.innerHTML = `"${q.text}" <br><small>Category: ${q.category}</small>`;
 } else {
   showRandomQuote();
+}
+function populateCategories() {
+  const categoryFilter = document.getElementById("categoryFilter");
+
+  // Clear existing categories (keep "All Categories")
+  categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+
+  const categories = [...new Set(quotes.map(q => q.category))];
+
+  categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    categoryFilter.appendChild(option);
+  });
+}
+function filterQuotes() {
+  const selectedCategory = document.getElementById("categoryFilter").value;
+
+  // Save selected filter
+  localStorage.setItem("selectedCategory", selectedCategory);
+
+  quoteDisplay.innerHTML = "";
+
+  const filteredQuotes =
+    selectedCategory === "all"
+      ? quotes
+      : quotes.filter(q => q.category === selectedCategory);
+
+  if (filteredQuotes.length === 0) {
+    quoteDisplay.textContent = "No quotes found for this category.";
+    return;
+  }
+
+  filteredQuotes.forEach(quote => {
+    const p = document.createElement("p");
+    p.textContent = `"${quote.text}" (${quote.category})`;
+    quoteDisplay.appendChild(p);
+  });
+}
+populateCategories();
+
+const savedCategory = localStorage.getItem("selectedCategory");
+if (savedCategory) {
+  document.getElementById("categoryFilter").value = savedCategory;
+  filterQuotes();
 }
